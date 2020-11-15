@@ -1,8 +1,9 @@
-# To see results for each problem
-```$ cd [hw_dir] ```
-```$ problem_4a ```
-```$ problem_4b ```
-```$ problem_4c ```
+To see results for each problem, in matlab console, ```$ cd <hw_dir> ```
 
-# Compare results for all problems
-```$ compare_all ```
+run ```$ problem_4a ```
+
+run ```$ problem_4b ```
+
+run ```$ problem_4c ```
+
+To Compare results for all problems, run ```$ compare_all ```
