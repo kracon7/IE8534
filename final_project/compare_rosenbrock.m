@@ -1,24 +1,28 @@
 clear;
-linx = linspace(-0.8,2,100);
-liny = linspace(-0.3,0.7,50);
+linx = linspace(-3,3,100);
+liny = linspace(-2,8,100);
 [X,Y] = meshgrid(linx,liny);
-Z = X.^2 +15* Y.^2;
-contour3(X,Y,Z,[0:0.05:10]);
+a = 1;
+b = 1;
+Z = (a-X).^2 + b * (Y - X.^2).^2;
+contour3(X,Y,Z,[-5:1:200]);
 xlabel('x');
 ylabel('y');
 zlabel('objective value');
+view(135, 60)
+
 hold on
 
 t = 1e-2;
-nStep = 500;
+nStep = 400;
 
-x0 = [1, 0.3];
-[obj, grad] = parabolic(x0);
+x0 = [-1, 5];
+[obj, grad] = rosenbrock(a, b, x0);
 v_prev_hb = zeros(size(x0));
 v_prev_nag = zeros(size(x0));
 s_k = zeros(2,2);
 gamma = 0.9;
-min_thresh = 1e-2;
+min_thresh = 1e-3;
 
 % initialize x
 x_sgd = x0;
@@ -43,7 +47,7 @@ grad_ada = grad;
 for k = 1:nStep
     % gradient descent
     x_sgd = x_sgd - t * grad_sgd;
-    [obj_sgd, grad_sgd] = parabolic(x_sgd);
+    [obj_sgd, grad_sgd] = rosenbrock(a, b, x_sgd);
     if obj_sgd > min_thresh
         obj_hist_sgd = [obj_hist_sgd, obj_sgd];
         x_hist_sgd = [x_hist_sgd; x_sgd];
@@ -52,12 +56,13 @@ for k = 1:nStep
     end
     
     
+    
     % heavy ball 
     v_hb = gamma * v_prev_hb + t * grad_hb;
     x_hb = x_hb - v_hb;
     v_prev_hb = v_hb;
     
-    [obj_hb, grad_hb] = parabolic(x_hb);
+    [obj_hb, grad_hb] = rosenbrock(a, b, x_hb);
     if obj_hb > min_thresh
         obj_hist_hb = [obj_hist_hb, obj_hb];
         x_hist_hb = [x_hist_hb; x_hb];
@@ -66,11 +71,11 @@ for k = 1:nStep
     end
         
     % nestrov accelarated gradient
-    [~, next_grad] = parabolic(x_nag - gamma * v_prev_nag);
+    [~, next_grad] = rosenbrock(a, b, x_nag - gamma * v_prev_nag);
     v_nag = gamma * v_prev_nag + t * next_grad;
     x_nag = x_nag - v_nag;
     v_prev_nag = v_nag;
-    [obj_nag, grad_nag] = parabolic(x_nag);
+    [obj_nag, grad_nag] = rosenbrock(a, b, x_nag);
     if obj_nag > min_thresh
         obj_hist_nag = [obj_hist_nag, obj_nag];
         x_hist_nag = [x_hist_nag; x_nag];
@@ -80,8 +85,8 @@ for k = 1:nStep
     
     % adaptive gradient
     s_k = s_k + 0.01*diag(grad_ada.^2);
-    x_ada = x_ada - t * grad_ada *inv(sqrt(s_k));
-    [obj_ada, grad_ada] = parabolic(x_ada);
+    x_ada = x_ada - t * grad_ada *inv(sqrt(s_k)+1e-8*eye(2));
+    [obj_ada, grad_ada] = rosenbrock(a, b, x_ada);
     if obj_ada > min_thresh
         obj_hist_ada = [obj_hist_ada, obj_ada];
         x_hist_ada = [x_hist_ada; x_ada];
@@ -96,6 +101,7 @@ for k = 1:nStep
     legend([p1 p2 p3 p4],{'SGD','Heavy ball', 'Nestrov', 'AdaGrad'}, 'Location','northeast')
     pause(0.05)
 end
+
 
 figure;
 hist_size_sgd = size(obj_hist_sgd);

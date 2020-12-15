@@ -3,7 +3,7 @@ linx = linspace(-2,2,100);
 liny = linspace(-2,2,100);
 [X,Y] = meshgrid(linx,liny);
 Z = X.^2 - Y.^2;
-contour3(X,Y,Z,[-5:0.1:5]);
+contour3(X,Y,Z,[-5:0.05:5]);
 xlabel('x');
 ylabel('y');
 zlabel('objective value');
@@ -11,7 +11,7 @@ zlabel('objective value');
 hold on
 
 t = 1e-2;
-nStep = 2000;
+nStep = 500;
 
 x0 = [1, -0.001];
 [obj, grad] = saddle(x0);
@@ -51,8 +51,6 @@ for k = 1:nStep
         p1 = plot3(x_hist_sgd(:,1), x_hist_sgd(:,2), obj_hist_sgd, 'r','LineWidth',2);
         hold on
     end
-    
-    
     
     % heavy ball 
     v_hb = gamma * v_prev_hb + t * grad_hb;
@@ -101,22 +99,25 @@ end
 
 
 figure;
-hist_size = size(obj_hist_sgd);
-semilogx([1:hist_size(2)], obj_hist_sgd, 'r');
+hist_size_sgd = size(obj_hist_sgd);
+semilogx([1:hist_size_sgd(2)], obj_hist_sgd, 'r');
 hold on
-hist_size = size(obj_hist_hb);
-semilogx([1:hist_size(2)], obj_hist_hb, 'g');
+hist_size_hb = size(obj_hist_hb);
+semilogx([1:hist_size_hb(2)], obj_hist_hb, 'g');
 hold on
-hist_size = size(obj_hist_nag);
-semilogx([1:hist_size(2)], obj_hist_nag, 'b');
+hist_size_nag = size(obj_hist_nag);
+semilogx([1:hist_size_nag(2)], obj_hist_nag, 'b');
 hold on
-hist_size = size(obj_hist_ada);
-semilogx([1:hist_size(2)], obj_hist_ada, 'k');
-hold on
+hist_size_ada = size(obj_hist_ada);
+semilogx([1:hist_size_ada(2)], obj_hist_ada, 'k');
 
 title('comparing results of various gradient methods');
 xlabel('Number of iterations');
 ylabel('Object function values');
 legend({'SGD','Heavy ball', 'Nestrov', 'AdaGrad'}, 'Location','northeast')
+
+fprintf('On Saddle function, total number of steps before termination are:\n%15s %15s %15s %15s\n%15d %15d %15d %15d\n',...
+        'SGD','Heavy ball', 'Nestrov', 'AdaGrad',...
+        hist_size_sgd(2), hist_size_hb(2), hist_size_nag(2), hist_size_ada(2));
 
 
